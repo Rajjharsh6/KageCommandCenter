@@ -19,7 +19,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val instanceId = intent.getLongExtra("EXTRA_INSTANCE_ID", -1L)
         if (instanceId == -1L) return
 
-        val action = intent.action
+        val intentAction = intent.action
         val pendingResult = goAsync()
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -27,7 +27,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 val db = AppDatabase.getDatabase(context, this)
                 val instance = db.reminderDao().getInstanceById(instanceId)
 
-                if (action == "com.kage.ACTION_ACKNOWLEDGE") {
+                if (intentAction == "com.kage.ACTION_ACKNOWLEDGE") {
                     db.reminderDao().acknowledgeInstance(instanceId, System.currentTimeMillis())
 
                     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -55,7 +55,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                             )
                         )
                     }
-                } else if (action == "com.kage.ACTION_SNOOZE") {
+                } else if (intentAction == "com.kage.ACTION_SNOOZE") {
                     val snoozeMinutes = intent.getIntExtra("EXTRA_SNOOZE_MINUTES", 10)
                     val snoozeUntil = System.currentTimeMillis() + (snoozeMinutes * 60 * 1000L)
 
