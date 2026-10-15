@@ -69,7 +69,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
                     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                     val alarmIntent = Intent(context, AlarmReceiver::class.java).apply {
-                        action = "com.kage.ACTION_TRIGGER_EVENT"
+                        this.action = "com.kage.ACTION_TRIGGER_EVENT"
                         putExtra("EXTRA_EVENT_ID", instance?.eventId ?: -1L)
                         putExtra("EXTRA_EVENT_TITLE", instance?.eventTitle ?: "Snoozed Task")
                         putExtra("EXTRA_CATEGORY", instance?.category?.name)
