@@ -1,5 +1,6 @@
 package com.kage.commandcenter.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -7,60 +8,75 @@ enum class EventCategory {
     JEE_STUDY,
     TRADING,
     GAMING,
-    BREAK,
-    SLEEP,
-    REVIEW,
-    GENERAL
+    FITNESS,
+    DEEP_WORK,
+    CHORES,
+    ROUTINE
 }
 
 enum class Priority {
-    LOW, MEDIUM, HIGH, CRITICAL
+    LOW,
+    MEDIUM,
+    HIGH,
+    CRITICAL
 }
 
-enum class ReminderStatus {
-    SCHEDULED,
-    ACTIVE_UNACKNOWLEDGED,
-    ACKNOWLEDGED,
-    SNOOZED,
-    MISSED
-}
-
-@Entity(tableName = "events")
+@Entity(tableName = "schedule_events")
 data class ScheduleEvent(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
+    @ColumnInfo(name = "title")
     val title: String,
+    @ColumnInfo(name = "category")
     val category: EventCategory,
+    @ColumnInfo(name = "priority")
     val priority: Priority,
+    @ColumnInfo(name = "startHour")
     val startHour: Int,
+    @ColumnInfo(name = "startMinute")
     val startMinute: Int,
+    @ColumnInfo(name = "endHour")
     val endHour: Int,
+    @ColumnInfo(name = "endMinute")
     val endMinute: Int,
-    val daysOfWeek: List<Int>,
-    val isEnabled: Boolean = true,
-    val allowOverlap: Boolean = false,
-    val prepReminderMinutes: Int = 0
+    @ColumnInfo(name = "daysOfWeek")
+    val daysOfWeek: List<Int> = listOf(1, 2, 3, 4, 5, 6, 7),
+    @ColumnInfo(name = "isEnabled")
+    val isEnabled: Boolean = true
 )
 
 @Entity(tableName = "reminder_instances")
 data class ReminderInstance(
-    @PrimaryKey(autoGenerate = true) val instanceId: Long = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
+    @ColumnInfo(name = "eventId")
     val eventId: Long,
+    @ColumnInfo(name = "eventTitle")
     val eventTitle: String,
+    @ColumnInfo(name = "category")
     val category: EventCategory,
-    val scheduledEpochMillis: Long,
-    val status: ReminderStatus,
-    val repeatCount: Int = 0,
-    val acknowledgedAtEpochMillis: Long? = null,
-    val snoozedUntilEpochMillis: Long? = null
+    @ColumnInfo(name = "triggerEpochMillis")
+    val triggerEpochMillis: Long,
+    @ColumnInfo(name = "isAcknowledged")
+    val isAcknowledged: Boolean = false,
+    @ColumnInfo(name = "acknowledgedEpochMillis")
+    val acknowledgedEpochMillis: Long? = null
 )
 
 @Entity(tableName = "productivity_logs")
 data class ProductivityLog(
-    @PrimaryKey(autoGenerate = true) val logId: Long = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
+    @ColumnInfo(name = "eventId")
     val eventId: Long,
+    @ColumnInfo(name = "category")
     val category: EventCategory,
+    @ColumnInfo(name = "dateEpochDay")
     val dateEpochDay: Long,
+    @ColumnInfo(name = "plannedMinutes")
     val plannedMinutes: Int,
+    @ColumnInfo(name = "actualMinutesCompleted")
     val actualMinutesCompleted: Int,
+    @ColumnInfo(name = "wasAcknowledgedOnTime")
     val wasAcknowledgedOnTime: Boolean
 )

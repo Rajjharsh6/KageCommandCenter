@@ -12,11 +12,12 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [ScheduleEvent::class, ReminderInstance::class, ProductivityLog::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun scheduleDao(): ScheduleDao
     abstract fun reminderDao(): ReminderDao
     abstract fun productivityDao(): ProductivityDao
@@ -31,14 +32,18 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "kage_command_center.db"
-                ).addCallback(DatabaseCallback(scope))
-                 .build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .addCallback(AppDatabaseCallback(scope))
+                    .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private class DatabaseCallback(private val scope: CoroutineScope) : RoomDatabase.Callback() {
+        private class AppDatabaseCallback(
+            private val scope: CoroutineScope
+        ) : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
@@ -48,22 +53,48 @@ abstract class AppDatabase : RoomDatabase() {
                 }
             }
 
-            private suspend fun populateInitialRoutine(dao: ScheduleDao) {
-                val allDays = listOf(1, 2, 3, 4, 5, 6, 7)
-                val sampleRoutine = listOf(
-                    ScheduleEvent(title = "Morning Wake Up & Hydration", category = EventCategory.GENERAL, priority = Priority.HIGH, startHour = 5, startMinute = 0, endHour = 5, endMinute = 30, daysOfWeek = allDays),
-                    ScheduleEvent(title = "JEE Physics: Mechanics & Formulas Revision", category = EventCategory.JEE_STUDY, priority = Priority.CRITICAL, startHour = 5, startMinute = 30, endHour = 8, endMinute = 0, daysOfWeek = allDays),
-                    ScheduleEvent(title = "Healthy Breakfast & Fresh Air", category = EventCategory.BREAK, priority = Priority.MEDIUM, startHour = 8, startMinute = 0, endHour = 9, endMinute = 0, daysOfWeek = allDays),
-                    ScheduleEvent(title = "JEE Mathematics: Problem Solving Drill", category = EventCategory.JEE_STUDY, priority = Priority.CRITICAL, startHour = 9, startMinute = 0, endHour = 10, endMinute = 30, daysOfWeek = allDays),
-                    ScheduleEvent(title = "Live Trading Class & Market Analysis", category = EventCategory.TRADING, priority = Priority.HIGH, startHour = 10, startMinute = 30, endHour = 13, endMinute = 0, daysOfWeek = listOf(1, 2, 3, 4, 5)),
-                    ScheduleEvent(title = "Lunch & Post-Trade Journaling", category = EventCategory.BREAK, priority = Priority.MEDIUM, startHour = 13, startMinute = 0, endHour = 14, endMinute = 0, daysOfWeek = allDays),
-                    ScheduleEvent(title = "JEE Chemistry & Backlog Resolution", category = EventCategory.JEE_STUDY, priority = Priority.CRITICAL, startHour = 14, startMinute = 0, endHour = 16, endMinute = 0, daysOfWeek = allDays),
-                    ScheduleEvent(title = "Guilt-Free Gaming & Relaxation", category = EventCategory.GAMING, priority = Priority.LOW, startHour = 16, startMinute = 0, endHour = 18, endMinute = 0, daysOfWeek = allDays),
-                    ScheduleEvent(title = "JEE Daily Practice Problems (DPP)", category = EventCategory.JEE_STUDY, priority = Priority.CRITICAL, startHour = 18, startMinute = 0, endHour = 20, endMinute = 30, daysOfWeek = allDays),
-                    ScheduleEvent(title = "Nightly Review & Sleep Prep", category = EventCategory.REVIEW, priority = Priority.HIGH, startHour = 21, startMinute = 30, endHour = 22, endMinute = 0, daysOfWeek = allDays),
-                    ScheduleEvent(title = "Sleep & Deep Recovery", category = EventCategory.SLEEP, priority = Priority.HIGH, startHour = 22, startMinute = 0, endHour = 5, endMinute = 0, daysOfWeek = allDays)
+            suspend fun populateInitialRoutine(dao: ScheduleDao) {
+                val defaultEvents = listOf(
+                    ScheduleEvent(
+                        title = "Trading Analysis & Prep",
+                        category = EventCategory.TRADING,
+                        priority = Priority.HIGH,
+                        startHour = 9,
+                        startMinute = 15,
+                        endHour = 10,
+                        endMinute = 30
+                    ),
+                    ScheduleEvent(
+                        title = "JEE Physics / Math Deep Work",
+                        category = EventCategory.JEE_STUDY,
+                        priority = Priority.CRITICAL,
+                        startHour = 11,
+                        startMinute = 0,
+                        endHour = 13,
+                        endMinute = 30
+                    ),
+                    ScheduleEvent(
+                        title = "JEE Chemistry & Problem Revision",
+                        category = EventCategory.JEE_STUDY,
+                        priority = Priority.CRITICAL,
+                        startHour = 15,
+                        startMinute = 0,
+                        endHour = 17,
+                        endMinute = 30
+                    ),
+                    ScheduleEvent(
+                        title = "Workout & Reset",
+                        category = EventCategory.FITNESS,
+                        priority = Priority.MEDIUM,
+                        startHour = 18,
+                        startMinute = 0,
+                        endHour = 19,
+                        endMinute = 0
+                    )
                 )
-                sampleRoutine.forEach { dao.insertEvent(it) }
+                for (event in defaultEvents) {
+                    dao.insertEvent(event)
+                }
             }
         }
     }

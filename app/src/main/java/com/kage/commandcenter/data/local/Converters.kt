@@ -4,35 +4,32 @@ import androidx.room.TypeConverter
 
 class Converters {
     @TypeConverter
-    fun fromIntList(list: List<Int>?): String = list?.joinToString(",") ?: ""
+    fun fromCategory(category: EventCategory?): String = category?.name ?: EventCategory.ROUTINE.name
 
     @TypeConverter
-    fun toIntList(data: String): List<Int> {
-        if (data.isBlank()) return emptyList()
-        return data.split(",").mapNotNull { it.trim().toIntOrNull() }
-    }
+    fun toCategory(value: String?): EventCategory =
+        try {
+            EventCategory.valueOf(value ?: EventCategory.ROUTINE.name)
+        } catch (e: Exception) {
+            EventCategory.ROUTINE
+        }
 
     @TypeConverter
-    fun fromCategory(category: EventCategory): String = category.name
+    fun fromPriority(priority: Priority?): String = priority?.name ?: Priority.MEDIUM.name
 
     @TypeConverter
-    fun toCategory(value: String): EventCategory = runCatching {
-        EventCategory.valueOf(value)
-    }.getOrDefault(EventCategory.GENERAL)
+    fun toPriority(value: String?): Priority =
+        try {
+            Priority.valueOf(value ?: Priority.MEDIUM.name)
+        } catch (e: Exception) {
+            Priority.MEDIUM
+        }
 
     @TypeConverter
-    fun fromPriority(priority: Priority): String = priority.name
+    fun fromDaysList(days: List<Int>?): String = days?.joinToString(",") ?: ""
 
     @TypeConverter
-    fun toPriority(value: String): Priority = runCatching {
-        Priority.valueOf(value)
-    }.getOrDefault(Priority.MEDIUM)
-
-    @TypeConverter
-    fun fromStatus(status: ReminderStatus): String = status.name
-
-    @TypeConverter
-    fun toStatus(value: String): ReminderStatus = runCatching {
-        ReminderStatus.valueOf(value)
-    }.getOrDefault(ReminderStatus.SCHEDULED)
+    fun toDaysList(value: String?): List<Int> =
+        if (value.isNullOrBlank()) emptyList()
+        else value.split(",").mapNotNull { it.trim().toIntOrNull() }
 }
