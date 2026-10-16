@@ -22,15 +22,22 @@ jobs:
     - name: Setup Android SDK and required components
       uses: android-actions/setup-android@v3
       with:
-        api-level: 35
+        api-levels: 35
         build-tools: 35.0.0
         components: |
           platform-tools
-          cmdline-tools;latest
+          "cmdline-tools;latest"
 
-    - name: Accept Android Licenses
+    - name: Accept Android SDK licenses
       run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        # ensure ANDROID_SDK_ROOT is defined and use cmdline-tools from the SDK root
+        export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}
+        yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+    - name: Install Android 35 Platform and Build-Tools (ensures components present)
+      run: |
+        export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}
+        "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" "platform-tools" || true
 
     - name: Validate or Generate Gradle Wrapper
       run: |
