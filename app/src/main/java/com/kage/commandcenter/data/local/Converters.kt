@@ -4,14 +4,14 @@ import androidx.room.TypeConverter
 
 class Converters {
     @TypeConverter
-    fun fromCategory(category: EventCategory?): String = category?.name ?: EventCategory.ROUTINE.name
+    fun fromCategory(category: EventCategory?): String = category?.name ?: EventCategory.GENERAL.name
 
     @TypeConverter
     fun toCategory(value: String?): EventCategory =
         try {
-            EventCategory.valueOf(value ?: EventCategory.ROUTINE.name)
+            EventCategory.valueOf(value ?: EventCategory.GENERAL.name)
         } catch (e: Exception) {
-            EventCategory.ROUTINE
+            EventCategory.GENERAL
         }
 
     @TypeConverter
@@ -23,6 +23,18 @@ class Converters {
             Priority.valueOf(value ?: Priority.MEDIUM.name)
         } catch (e: Exception) {
             Priority.MEDIUM
+        }
+
+    @TypeConverter
+    fun fromReminderStatus(status: ReminderStatus?): String =
+        status?.name ?: ReminderStatus.ACTIVE_UNACKNOWLEDGED.name
+
+    @TypeConverter
+    fun toReminderStatus(value: String?): ReminderStatus =
+        try {
+            ReminderStatus.valueOf(value ?: ReminderStatus.ACTIVE_UNACKNOWLEDGED.name)
+        } catch (e: Exception) {
+            ReminderStatus.ACTIVE_UNACKNOWLEDGED
         }
 
     @TypeConverter

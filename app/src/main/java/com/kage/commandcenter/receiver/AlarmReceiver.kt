@@ -18,7 +18,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val eventId = intent.getLongExtra("EXTRA_EVENT_ID", -1L)
         val eventTitle = intent.getStringExtra("EXTRA_EVENT_TITLE") ?: "Task Alert"
-        val categoryStr = intent.getStringExtra("EXTRA_CATEGORY") ?: EventCategory.GENERAL.name
+        val categoryStr = intent.getStringExtra("EXTRA_CATEGORY") ?: ""
         val scheduledTime = intent.getLongExtra("EXTRA_SCHEDULED_TIME", System.currentTimeMillis())
 
         if (eventId == -1L) return
@@ -27,14 +27,22 @@ class AlarmReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = AppDatabase.getDatabase(context, this)
+
+                val category = try {
+                    EventCategory.valueOf(categoryStr)
+                } catch (e: Exception) {
+                    EventCategory.GENERAL
+                }
+
                 val existing = db.reminderDao().getActiveInstanceForEvent(eventId)
-                val instanceId = if (existing != null) {
+
+                val instanceId: Long = if (existing != null) {
                     existing.instanceId
                 } else {
                     val newInstance = ReminderInstance(
                         eventId = eventId,
                         eventTitle = eventTitle,
-                        category = EventCategory.valueOf(categoryStr),
+                        category = category,
                         scheduledEpochMillis = scheduledTime,
                         status = ReminderStatus.ACTIVE_UNACKNOWLEDGED
                     )
@@ -44,6 +52,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 val serviceIntent = Intent(context, ActiveReminderService::class.java).apply {
                     putExtra("EXTRA_INSTANCE_ID", instanceId)
                     putExtra("EXTRA_EVENT_TITLE", eventTitle)
+                    putExtra("EXTRA_CATEGORY", category.name)
                     putExtra("EXTRA_SCHEDULED_TIME", scheduledTime)
                 }
 

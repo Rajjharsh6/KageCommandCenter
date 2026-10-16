@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 enum class EventCategory {
+    GENERAL,
     JEE_STUDY,
     TRADING,
     GAMING,
@@ -21,6 +22,13 @@ enum class Priority {
     CRITICAL
 }
 
+enum class ReminderStatus {
+    ACTIVE_UNACKNOWLEDGED,
+    ACTIVE_ACKNOWLEDGED,
+    SNOOZED,
+    CANCELLED
+}
+
 @Entity(tableName = "schedule_events")
 data class ScheduleEvent(
     @PrimaryKey(autoGenerate = true)
@@ -28,9 +36,9 @@ data class ScheduleEvent(
     @ColumnInfo(name = "title")
     val title: String,
     @ColumnInfo(name = "category")
-    val category: EventCategory,
+    val category: EventCategory = EventCategory.ROUTINE,
     @ColumnInfo(name = "priority")
-    val priority: Priority,
+    val priority: Priority = Priority.MEDIUM,
     @ColumnInfo(name = "startHour")
     val startHour: Int,
     @ColumnInfo(name = "startMinute")
@@ -48,20 +56,26 @@ data class ScheduleEvent(
 @Entity(tableName = "reminder_instances")
 data class ReminderInstance(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,
+    @ColumnInfo(name = "instanceId")
+    val instanceId: Long = 0L,
     @ColumnInfo(name = "eventId")
     val eventId: Long,
     @ColumnInfo(name = "eventTitle")
     val eventTitle: String,
     @ColumnInfo(name = "category")
-    val category: EventCategory,
-    @ColumnInfo(name = "triggerEpochMillis")
-    val triggerEpochMillis: Long,
-    @ColumnInfo(name = "isAcknowledged")
-    val isAcknowledged: Boolean = false,
+    val category: EventCategory = EventCategory.ROUTINE,
+    @ColumnInfo(name = "scheduledEpochMillis")
+    val scheduledEpochMillis: Long,
+    @ColumnInfo(name = "status")
+    val status: ReminderStatus = ReminderStatus.ACTIVE_UNACKNOWLEDGED,
     @ColumnInfo(name = "acknowledgedEpochMillis")
     val acknowledgedEpochMillis: Long? = null
-)
+) {
+    // Aliases to ensure backward compatibility with all screens
+    val id: Long get() = instanceId
+    val triggerEpochMillis: Long get() = scheduledEpochMillis
+    val isAcknowledged: Boolean get() = status == ReminderStatus.ACTIVE_ACKNOWLEDGED
+}
 
 @Entity(tableName = "productivity_logs")
 data class ProductivityLog(

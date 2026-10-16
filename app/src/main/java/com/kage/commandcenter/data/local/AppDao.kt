@@ -31,19 +31,22 @@ interface ScheduleDao {
 
 @Dao
 interface ReminderDao {
-    @Query("SELECT * FROM reminder_instances WHERE isAcknowledged = 0 ORDER BY triggerEpochMillis ASC")
+    @Query("SELECT * FROM reminder_instances WHERE status = 'ACTIVE_UNACKNOWLEDGED' ORDER BY scheduledEpochMillis ASC")
     fun getActiveReminders(): Flow<List<ReminderInstance>>
 
-    @Query("SELECT * FROM reminder_instances WHERE id = :id")
+    @Query("SELECT * FROM reminder_instances WHERE instanceId = :id")
     suspend fun getInstanceById(id: Long): ReminderInstance?
+
+    @Query("SELECT * FROM reminder_instances WHERE eventId = :eventId AND status = 'ACTIVE_UNACKNOWLEDGED' LIMIT 1")
+    suspend fun getActiveInstanceForEvent(eventId: Long): ReminderInstance?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertInstance(instance: ReminderInstance): Long
 
-    @Query("UPDATE reminder_instances SET isAcknowledged = 1, acknowledgedEpochMillis = :acknowledgedAt WHERE id = :id")
+    @Query("UPDATE reminder_instances SET status = 'ACTIVE_ACKNOWLEDGED', acknowledgedEpochMillis = :acknowledgedAt WHERE instanceId = :id")
     suspend fun acknowledgeInstance(id: Long, acknowledgedAt: Long)
 
-    @Query("UPDATE reminder_instances SET triggerEpochMillis = :snoozeUntil WHERE id = :id")
+    @Query("UPDATE reminder_instances SET status = 'SNOOZED', scheduledEpochMillis = :snoozeUntil WHERE instanceId = :id")
     suspend fun snoozeInstance(id: Long, snoozeUntil: Long)
 }
 
