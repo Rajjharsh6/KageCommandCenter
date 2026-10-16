@@ -19,13 +19,18 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Android SDK Tools
+    - name: Setup Android SDK and required components
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+        components: |
+          platform-tools
+          cmdline-tools;latest
 
-    - name: Install Android 35 Platform and Build-Tools
+    - name: Accept Android Licenses
       run: |
-        yes | sdkmanager --licenses || true
-        sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     - name: Validate or Generate Gradle Wrapper
       run: |
