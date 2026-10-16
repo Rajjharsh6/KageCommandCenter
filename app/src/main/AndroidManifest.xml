@@ -19,6 +19,14 @@
         android:roundIcon="@android:drawable/ic_lock_idle_alarm"
         android:supportsRtl="true"
         android:theme="@style/Theme.Kage">
+    <application
+        android:name=".KageApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_schedule_logo"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_schedule_logo"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Kage">
 
         <activity
             android:name=".MainActivity"
@@ -70,11 +78,3 @@
 
     </application>
 </manifest>
-<application
-        android:name=".KageApplication"
-        android:allowBackup="true"
-        android:icon="@drawable/ic_schedule_logo"
-        android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_schedule_logo"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.Kage">
