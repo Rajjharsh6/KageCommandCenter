@@ -63,9 +63,9 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: "dashboard"
 
-                val events by db.scheduleDao().getAllEvents().collectAsState(initial = emptyList())
-                val activeReminders by db.reminderDao().getActiveReminders().collectAsState(initial = emptyList())
-                val logs by db.productivityDao().getAllLogs().collectAsState(initial = emptyList())
+                val events by db.scheduleDao().getAllEvents().collectAsState(initial = emptyList<com.kage.commandcenter.data.local.ScheduleEvent>())
+                val activeReminders by db.reminderDao().getActiveReminders().collectAsState(initial = emptyList<com.kage.commandcenter.data.local.ReminderInstance>())
+                val logs by db.productivityDao().getAllLogs().collectAsState(initial = emptyList<com.kage.commandcenter.data.local.ProductivityLog>())
 
                 Scaffold(
                     containerColor = CharcoalBackground,

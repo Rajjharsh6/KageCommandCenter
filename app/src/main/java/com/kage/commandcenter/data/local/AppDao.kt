@@ -1,17 +1,22 @@
 package com.kage.commandcenter.data.local
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ScheduleDao {
-    @Query("SELECT * FROM events ORDER BY startHour ASC, startMinute ASC")
+    @Query("SELECT * FROM schedule_events ORDER BY startHour ASC, startMinute ASC")
     fun getAllEvents(): Flow<List<ScheduleEvent>>
 
-    @Query("SELECT * FROM events WHERE isEnabled = 1")
+    @Query("SELECT * FROM schedule_events WHERE isEnabled = 1")
     suspend fun getActiveEventsSync(): List<ScheduleEvent>
 
-    @Query("SELECT * FROM events WHERE id = :id")
+    @Query("SELECT * FROM schedule_events WHERE id = :id")
     suspend fun getEventById(id: Long): ScheduleEvent?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -26,30 +31,22 @@ interface ScheduleDao {
 
 @Dao
 interface ReminderDao {
-    @Query("SELECT * FROM reminder_instances WHERE status = 'ACTIVE_UNACKNOWLEDGED' ORDER BY scheduledEpochMillis DESC")
+    @Query("SELECT * FROM reminder_instances WHERE isAcknowledged = 0 ORDER BY triggerEpochMillis ASC")
     fun getActiveReminders(): Flow<List<ReminderInstance>>
 
-    @Query("SELECT * FROM reminder_instances WHERE instanceId = :id")
+    @Query("SELECT * FROM reminder_instances WHERE id = :id")
     suspend fun getInstanceById(id: Long): ReminderInstance?
-
-    @Query("SELECT * FROM reminder_instances WHERE eventId = :eventId AND status = 'ACTIVE_UNACKNOWLEDGED' LIMIT 1")
-    suspend fun getActiveInstanceForEvent(eventId: Long): ReminderInstance?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertInstance(instance: ReminderInstance): Long
 
-    @Query("UPDATE reminder_instances SET status = 'ACKNOWLEDGED', acknowledgedAtEpochMillis = :timestamp WHERE instanceId = :instanceId")
-    suspend fun acknowledgeInstance(instanceId: Long, timestamp: Long)
+    @Query("UPDATE reminder_instances SET isAcknowledged = 1, acknowledgedEpochMillis = :acknowledgedAt WHERE id = :id")
+    suspend fun acknowledgeInstance(id: Long, acknowledgedAt: Long)
 
-    @Query("UPDATE reminder_instances SET status = 'SNOOZED', snoozedUntilEpochMillis = :snoozeUntil WHERE instanceId = :instanceId")
-    suspend fun snoozeInstance(instanceId: Long, snoozeUntil: Long)
+    @Query("UPDATE reminder_instances SET triggerEpochMillis = :snoozeUntil WHERE id = :id")
+    suspend fun snoozeInstance(id: Long, snoozeUntil: Long)
 }
 
-@Dao
-interface ProductivityDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLog(log: ProductivityLog)
-}
 @Dao
 interface ProductivityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
