@@ -50,3 +50,11 @@ interface ProductivityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLog(log: ProductivityLog)
 }
+@Dao
+interface ProductivityDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLog(log: ProductivityLog)
+
+    @Query("SELECT * FROM productivity_logs ORDER BY dateEpochDay DESC")
+    fun getAllLogs(): Flow<List<ProductivityLog>>
+}
