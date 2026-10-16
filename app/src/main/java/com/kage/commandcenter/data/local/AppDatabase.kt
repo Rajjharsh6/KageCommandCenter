@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [ScheduleEvent::class, ReminderInstance::class, ProductivityLog::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -56,40 +56,31 @@ abstract class AppDatabase : RoomDatabase() {
             suspend fun populateInitialRoutine(dao: ScheduleDao) {
                 val defaultEvents = listOf(
                     ScheduleEvent(
-                        title = "Trading Analysis & Prep",
-                        category = EventCategory.TRADING,
+                        title = "Morning Planning",
+                        category = EventCategory.ROUTINE,
                         priority = Priority.HIGH,
-                        startHour = 9,
-                        startMinute = 15,
-                        endHour = 10,
-                        endMinute = 30
-                    ),
-                    ScheduleEvent(
-                        title = "JEE Physics / Math Deep Work",
-                        category = EventCategory.JEE_STUDY,
-                        priority = Priority.CRITICAL,
-                        startHour = 11,
-                        startMinute = 0,
-                        endHour = 13,
-                        endMinute = 30
-                    ),
-                    ScheduleEvent(
-                        title = "JEE Chemistry & Problem Revision",
-                        category = EventCategory.JEE_STUDY,
-                        priority = Priority.CRITICAL,
-                        startHour = 15,
-                        startMinute = 0,
-                        endHour = 17,
-                        endMinute = 30
-                    ),
-                    ScheduleEvent(
-                        title = "Workout & Reset",
-                        category = EventCategory.FITNESS,
-                        priority = Priority.MEDIUM,
-                        startHour = 18,
-                        startMinute = 0,
-                        endHour = 19,
+                        startHour = 8,
+                        startMinute = 30,
+                        endHour = 9,
                         endMinute = 0
+                    ),
+                    ScheduleEvent(
+                        title = "Deep Focus Work",
+                        category = EventCategory.DEEP_WORK,
+                        priority = Priority.CRITICAL,
+                        startHour = 9,
+                        startMinute = 30,
+                        endHour = 12,
+                        endMinute = 30
+                    ),
+                    ScheduleEvent(
+                        title = "Evening Routine & Review",
+                        category = EventCategory.ROUTINE,
+                        priority = Priority.MEDIUM,
+                        startHour = 20,
+                        startMinute = 0,
+                        endHour = 20,
+                        endMinute = 30
                     )
                 )
                 for (event in defaultEvents) {

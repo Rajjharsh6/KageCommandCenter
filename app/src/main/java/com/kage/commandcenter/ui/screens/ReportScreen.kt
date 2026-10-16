@@ -10,15 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kage.commandcenter.data.local.EventCategory
 import com.kage.commandcenter.data.local.ProductivityLog
 import com.kage.commandcenter.ui.theme.*
 
 @Composable
 fun ReportScreen(logs: List<ProductivityLog>) {
     val totalMinutes = logs.sumOf { it.actualMinutesCompleted }
-    val jeeMinutes = logs.filter { it.category == EventCategory.JEE_STUDY }.sumOf { it.actualMinutesCompleted }
-    val tradingMinutes = logs.filter { it.category == EventCategory.TRADING }.sumOf { it.actualMinutesCompleted }
+    val onTimeSessions = logs.count { it.wasAcknowledgedOnTime }
+    val adherenceRate = if (logs.isNotEmpty()) (onTimeSessions * 100) / logs.size else 100
 
     LazyColumn(
         modifier = Modifier
@@ -28,14 +27,14 @@ fun ReportScreen(logs: List<ProductivityLog>) {
     ) {
         item {
             Text(
-                "WEEKLY PRODUCTIVITY AUDIT",
+                "ROUTINE AUDIT",
                 color = CyanAccent,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.2.sp
             )
             Text(
-                "Calculated based on completed and acknowledged sessions",
+                "Completed tasks and adherence metrics",
                 color = TextSecondary,
                 fontSize = 12.sp
             )
@@ -49,24 +48,16 @@ fun ReportScreen(logs: List<ProductivityLog>) {
                     modifier = Modifier.weight(1f)
                 )
                 MetricSummaryCard(
-                    title = "JEE Prep Dedicated",
-                    value = String.format("%.1f hrs", jeeMinutes / 60f),
+                    title = "Adherence Rate",
+                    value = "$adherenceRate%",
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
         item {
-            MetricSummaryCard(
-                title = "Live Trading & Journaling",
-                value = String.format("%.1f hrs", tradingMinutes / 60f),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        item {
             Text(
-                "SESSION LOG HISTORY",
+                "COMPLETED SESSIONS",
                 color = TextSecondary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
@@ -76,11 +67,25 @@ fun ReportScreen(logs: List<ProductivityLog>) {
 
         if (logs.isEmpty()) {
             item {
-                Text(
-                    "No sessions completed yet. Whenever you tap '✅ OK, DONE' on a reminder, the session log records here automatically.",
-                    color = TextSecondary,
-                    fontSize = 13.sp
-                )
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = CharcoalSurface),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "No sessions completed yet.",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Whenever you tap 'OK, DONE' on a reminder, your session will be logged here.",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
             }
         } else {
             items(logs) { log ->

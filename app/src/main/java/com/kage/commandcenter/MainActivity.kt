@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -63,9 +62,9 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: "dashboard"
 
-                val events by db.scheduleDao().getAllEvents().collectAsState(initial = emptyList<com.kage.commandcenter.data.local.ScheduleEvent>())
-                val activeReminders by db.reminderDao().getActiveReminders().collectAsState(initial = emptyList<com.kage.commandcenter.data.local.ReminderInstance>())
-                val logs by db.productivityDao().getAllLogs().collectAsState(initial = emptyList<com.kage.commandcenter.data.local.ProductivityLog>())
+                val events by db.scheduleDao().getAllEvents().collectAsState(initial = emptyList())
+                val activeReminders by db.reminderDao().getActiveReminders().collectAsState(initial = emptyList())
+                val logs by db.productivityDao().getAllLogs().collectAsState(initial = emptyList())
 
                 Scaffold(
                     containerColor = CharcoalBackground,
@@ -78,13 +77,13 @@ class MainActivity : ComponentActivity() {
                                 onClick = { navController.navigate("dashboard") { launchSingleTop = true } }
                             )
                             NavigationBarItem(
-                                icon = { Icon(Icons.Default.List, contentDescription = "Schedule") },
+                                icon = { Icon(Icons.Default.List, contentDescription = "Routine") },
                                 label = { Text("Routine") },
                                 selected = currentRoute == "timetable",
                                 onClick = { navController.navigate("timetable") { launchSingleTop = true } }
                             )
                             NavigationBarItem(
-                                icon = { Icon(Icons.Default.BarChart, contentDescription = "Analytics") },
+                                icon = { Icon(Icons.Default.BarChart, contentDescription = "Report") },
                                 label = { Text("Report") },
                                 selected = currentRoute == "report",
                                 onClick = { navController.navigate("report") { launchSingleTop = true } }
@@ -121,8 +120,7 @@ class MainActivity : ComponentActivity() {
                                         putExtra("EXTRA_SNOOZE_MINUTES", minutes)
                                     }
                                     sendBroadcast(intent)
-                                },
-                                onQuickAdd = { triggerInstantTestReminder() }
+                                }
                             )
                         }
 
@@ -197,24 +195,5 @@ class MainActivity : ComponentActivity() {
                 KageAlarmScheduler.scheduleEvent(applicationContext, event)
             }
         }
-    }
-
-    private fun triggerInstantTestReminder() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val now = java.time.LocalTime.now().plusSeconds(5)
-            val testEvent = com.kage.commandcenter.data.local.ScheduleEvent(
-                title = "⚡ Live Test Reminder",
-                category = com.kage.commandcenter.data.local.EventCategory.JEE_STUDY,
-                priority = com.kage.commandcenter.data.local.Priority.CRITICAL,
-                startHour = now.hour,
-                startMinute = now.minute,
-                endHour = (now.hour + 1) % 24,
-                endMinute = now.minute,
-                daysOfWeek = emptyList()
-            )
-            val id = db.scheduleDao().insertEvent(testEvent)
-            KageAlarmScheduler.scheduleEvent(applicationContext, testEvent.copy(id = id))
-        }
-        Toast.makeText(this, "Test reminder scheduled for 5 seconds from now!", Toast.LENGTH_SHORT).show()
     }
 }
