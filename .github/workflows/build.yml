@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Use the hosted runner SDK path (matches runner logs); override if needed
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
     - name: Checkout Repository
@@ -26,18 +29,49 @@ jobs:
         build-tools: 35.0.0
         components: |
           platform-tools
+          platforms;android-35
+          "cmdline-tools;16.0"
           "cmdline-tools;latest"
 
-    - name: Accept Android SDK licenses
+    - name: Accept Android SDK licenses (robust sdkmanager path)
       run: |
-        # ensure ANDROID_SDK_ROOT is defined and use cmdline-tools from the SDK root
+        # Prefer the explicit ANDROID_SDK_ROOT set above, but fall back to HOME path if not set
         export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}
-        yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
-    - name: Install Android 35 Platform and Build-Tools (ensures components present)
+        # Try the conventional 'latest' path first, then pick any installed cmdline-tools sdkmanager
+        SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+        if [ ! -x "$SDKMANAGER" ]; then
+          SDKMANAGER=$(ls -1 "$ANDROID_SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -n1 || true)
+        fi
+
+        # Extra fallback for runners that place SDK at /usr/local/lib/android/sdk
+        if [ -z "$SDKMANAGER" ]; then
+          SDKMANAGER=$(ls -1 /usr/local/lib/android/sdk/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -n1 || true)
+        fi
+
+        if [ -z "$SDKMANAGER" ]; then
+          echo "sdkmanager not found under $ANDROID_SDK_ROOT/cmdline-tools or /usr/local/lib/android/sdk/cmdline-tools"
+          echo "Listing cmdline-tools directory (if present):"
+          ls -la "$ANDROID_SDK_ROOT"/cmdline-tools || true
+          exit 1
+        fi
+
+        echo "Using sdkmanager: $SDKMANAGER"
+        yes | "$SDKMANAGER" --licenses || true
+
+    - name: Ensure Android platform & build-tools present (idempotent)
       run: |
         export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}
-        "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" "platform-tools" || true
+        SDKMANAGER=${SDKMANAGER:-$(ls -1 "$ANDROID_SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -n1 || true)}
+        if [ -z "$SDKMANAGER" ]; then
+          SDKMANAGER=$(ls -1 /usr/local/lib/android/sdk/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -n1 || true)
+        fi
+        if [ -z "$SDKMANAGER" ]; then
+          echo "sdkmanager unavailable; cannot ensure platforms/build-tools"
+          exit 1
+        fi
+        echo "Installing/checking packages with: $SDKMANAGER"
+        "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" "platform-tools" || true
 
     - name: Validate or Generate Gradle Wrapper
       run: |
